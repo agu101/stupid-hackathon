@@ -5,7 +5,8 @@ app = FastAPI()
 REQUESTS = {}
 
 # receive image, save to REQUESTS with unique ID, send email, and sends id back
-@app.post("/send_image")
+# alangu: put vs post?
+@app.put("/send_image")
 def read_root():
     return {"Hello": "World"}
 
