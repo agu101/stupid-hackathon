@@ -11,6 +11,7 @@ CLASSIFICATION_REQUESTS = {}
 def send_email(request_id: str, image_data: UploadFile) -> None:
     pass
 
+# user sends image for classification
 @app.post("/uploadimage/")
 def upload_image(image_file: UploadFile):
     request_id: str = str(uuid.uuid4())
@@ -18,7 +19,13 @@ def upload_image(image_file: UploadFile):
     send_email(request_id, image_file)
     return {"request_id": request_id}
 
+# gmail sends classification result
+@app.patch("/updateclassification/{request_id}")
+def update_classification(request_id: str, email_reply: str):
+    CLASSIFICATION_REQUESTS[request_id] = email_reply
+    return "success"
 
+# user requests classification result
 @app.get("/classification/{request_id}")
 def get_classification_status(request_id: str):
     if request_id not in CLASSIFICATION_REQUESTS:
@@ -28,8 +35,3 @@ def get_classification_status(request_id: str):
     status = "complete" if result else "pending"
     
     return {"status": status, "result": result}
-
-@app.patch("/updateclassification/{request_id}")
-def update_classification(request_id: str, email_reply: str):
-    CLASSIFICATION_REQUESTS[request_id] = email_reply
-    return "success"
