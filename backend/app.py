@@ -1,17 +1,35 @@
-from fastapi import FastAPI
+from enum import Enum
+from fastapi import FastAPI, HTTPException, UploadFile
+from pydantic import BaseModel
+import uuid
+from uuid import UUID
 
 app = FastAPI()
 
-REQUESTS = {}
+CLASSIFICATION_REQUESTS = {}
 
-# receive image, save to REQUESTS with unique ID, send email, and sends id back
-# alangu: put vs post?
-@app.put("/send_image")
-def read_root():
-    return {"Hello": "World"}
+def send_email(request_id: str, image_data: UploadFile) -> None:
+    pass
 
-# receives list of ids and returns answers if we have them or status
-@app.get("/get_classification_status")
-def read_item(item_id: int, q: str | None = None):
-    return {"item_id": item_id, "q": q}
+@app.post("/uploadimage/")
+def upload_image(image_file: UploadFile):
+    request_id: str = str(uuid.uuid4())
+    CLASSIFICATION_REQUESTS[request_id] = None
+    send_email(request_id, image_file)
+    return {"request_id": request_id}
 
+
+@app.get("/classification/{request_id}")
+def get_classification_status(request_id: str):
+    if request_id not in CLASSIFICATION_REQUESTS:
+        raise HTTPException(status_code=404, detail="Request not found")
+    
+    result = CLASSIFICATION_REQUESTS[request_id]
+    status = "complete" if result else "pending"
+    
+    return {"status": status, "result": result}
+
+@app.patch("/updateclassification/{request_id}")
+def update_classification(request_id: str, email_reply: str):
+    CLASSIFICATION_REQUESTS[request_id] = email_reply
+    return "success"
